@@ -23,8 +23,8 @@ class handler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
-            self.wfile.write(json.dumps({"message": "예시 URL => https://n8n-api-delta.vercel.app/api/extract_web_content?url=https://www.fxstreet.com/cryptocurrencies/news/why-chinas-deepseek-is-causing-bitcoin-and-crypto-market-to-plunge-202501272010"}).encode('utf-8'))
-        elif parsed_url.path == '/api/extract_web_content':
+            self.wfile.write(json.dumps({"message": "예시 URL => https://n8n-api-delta.vercel.app/extract_web_content?url=https://www.fxstreet.com/cryptocurrencies/news/why-chinas-deepseek-is-causing-bitcoin-and-crypto-market-to-plunge-202501272010"}).encode('utf-8'))
+        elif parsed_url.path == '/extract_web_content':
             query_params = parse_qs(parsed_url.query)
             extracted_url = query_params.get("url", [None])[0]
 
