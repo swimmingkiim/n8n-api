@@ -2,5 +2,4 @@ goose3==3.1.19
 beautifulsoup4==4.12.3
 trafilatura==2.0.0
 requests-html==0.10.0
-nest-asyncio==1.6.0
 pyppeteer

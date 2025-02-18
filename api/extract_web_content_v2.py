@@ -12,10 +12,6 @@ import trafilatura
 from http.server import BaseHTTPRequestHandler
 import asyncio
 from pyppeteer import launch
-import nest_asyncio
-
-# 현재 스레드에 asyncio 이벤트 루프 적용
-nest_asyncio.apply()
 
 def fetch_dynamic_content(url):
     try:
