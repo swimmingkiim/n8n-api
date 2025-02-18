@@ -3,6 +3,7 @@
   "redirects": [{ "source": "/", "destination": "/api" }],
   "builds": [
     {
+      "src": "Dockerfile",
       "use": "docker"
     }
   ]
