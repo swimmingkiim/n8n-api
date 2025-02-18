@@ -1,8 +1,10 @@
 {
+  "version": 2,
   "redirects": [{ "source": "/", "destination": "/api" }],
-  "functions": {
-    "api/**": {
-      "runtime": "vercel-docker"
+  "builds": [
+    {
+      "src": "Dockerfile",
+      "use": "@vercel/docker"
     }
-  }
+  ]
 }
