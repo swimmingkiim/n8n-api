@@ -2,8 +2,7 @@ from urllib.parse import urlparse, parse_qs
 import json
 import requests
 import trafilatura
-from bs4 import BeautifulSoup
-
+from lxml import html
 from http.server import BaseHTTPRequestHandler
 
 def fetch_dynamic_content(url):
@@ -58,14 +57,11 @@ class handler(BaseHTTPRequestHandler):
                 title = result.get('title', "No title")
                 content_text = result.get('text', "No content")
 
-            # BeautifulSoup를 사용해 댓글 추출 (div.cmt_list 내부의 div.cmt_item)
-            soup = BeautifulSoup(dynamic_content, 'html.parser')
-            comment_container = soup.find('div', class_='cmt_list')
-            if comment_container:
-                comment_items = comment_container.find_all('div', class_='cmt_item')
-                comments = [item.get_text(strip=True) for item in comment_items]
-            else:
-                comments = []
+            # lxml과 XPath를 사용하여 댓글 추출
+            # 댓글 리스트: div.cmt_list, 댓글 아이템: div.cmt_item
+            tree = html.fromstring(dynamic_content)
+            comment_elements = tree.xpath('//div[@class="cmt_list"]//div[@class="cmt_item"]')
+            comments = [elem.text_content().strip() for elem in comment_elements]
 
             data = {
                 'link': extracted_url,
