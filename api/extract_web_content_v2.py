@@ -10,8 +10,7 @@ import json
 import requests
 import trafilatura
 from http.server import BaseHTTPRequestHandler
-import asyncio
-from pyppeteer import launch
+from requests_html import HTMLSession
 
 def fetch_dynamic_content(url):
     try:
@@ -28,19 +27,14 @@ def fetch_dynamic_content(url):
     except Exception as e:
         return {"error": str(e)}
 
-async def fetch_dynamic_comments_pyppeteer(url):
-    # --no-sandbox 옵션 추가하여 실행 (필요 시)
-    browser = await launch(headless=True, args=['--no-sandbox'])
-    page = await browser.newPage()
-    # 네트워크가 안정될 때까지 대기
-    await page.goto(url, {'waitUntil': 'networkidle2'})
-    # CSS 셀렉터를 사용하여 댓글 요소 추출 (div.cmt_list 내의 div.cmt_item)
-    comment_elements = await page.querySelectorAll("div.cmt_list div.cmt_item")
-    comments = []
-    for elem in comment_elements:
-        text = await page.evaluate('(element) => element.textContent', elem)
-        comments.append(text.strip())
-    await browser.close()
+def fetch_dynamic_comments_requests_html(url):
+    session = HTMLSession()
+    r = session.get(url)
+    # 페이지 내 동적 콘텐츠 렌더링 (댓글 등)
+    r.html.render(timeout=20)
+    # CSS 셀렉터를 이용해 댓글 추출 (div.cmt_list 내의 div.cmt_item)
+    comment_elements = r.html.find("div.cmt_list div.cmt_item")
+    comments = [elem.text for elem in comment_elements]
     return comments
 
 class handler(BaseHTTPRequestHandler):
@@ -67,7 +61,7 @@ class handler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps(dynamic_content, ensure_ascii=False).encode('utf-8'))
                 return
 
-            # Trafilatura를 사용하여 본문 및 메타데이터 추출 (JSON 형식으로 반환)
+            # Trafilatura를 사용하여 본문 및 메타데이터 추출 (JSON 형식)
             result_str = trafilatura.extract(dynamic_content, output_format='json', with_metadata=True)
             if result_str is None:
                 title = "No title"
@@ -77,10 +71,8 @@ class handler(BaseHTTPRequestHandler):
                 title = result.get('title', "No title")
                 content_text = result.get('text', "No content")
 
-            # pyppeteer를 사용해 동적 댓글을 가져옴
-            comments = asyncio.get_event_loop().run_until_complete(
-                fetch_dynamic_comments_pyppeteer(extracted_url)
-            )
+            # requests-html을 사용하여 동적 댓글 가져오기
+            comments = fetch_dynamic_comments_requests_html(extracted_url)
 
             data = {
                 'link': extracted_url,
