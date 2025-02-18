@@ -1,13 +1,8 @@
 {
   "redirects": [{ "source": "/", "destination": "/api" }],
-  "env": {
-    "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"
-  },
-  "builds": [
-    {
-      "src": "api/*.py",
-      "use": "@vercel/python"
+  "functions": {
+    "api/**": {
+      "runtime": "vercel-docker"
     }
-  ],
-  "buildCommand": "pip install -r requirements.txt"
+  }
 }
