@@ -27,11 +27,11 @@ class handler(BaseHTTPRequestHandler):
 
         if not extracted_url or not extracted_url.startswith(('http://', 'https://')):
             self.send_response(400)
-            self.send_header('Content-type', 'application/json')
+            self.send_header('Content-type', 'application/json; charset=utf-8')
             self.end_headers()
             self.wfile.write(json.dumps({
                 "error": "Invalid or missing 'url' parameter in the input."
-            }).encode('utf-8'))
+            }, ensure_ascii=False).encode('utf-8'))
             return
 
         try:
@@ -39,9 +39,9 @@ class handler(BaseHTTPRequestHandler):
 
             if isinstance(dynamic_content, dict) and "error" in dynamic_content:
                 self.send_response(500)
-                self.send_header('Content-type', 'application/json')
+                self.send_header('Content-type', 'application/json; charset=utf-8')
                 self.end_headers()
-                self.wfile.write(json.dumps(dynamic_content).encode('utf-8'))
+                self.wfile.write(json.dumps(dynamic_content, ensure_ascii=False).encode('utf-8'))
                 return
 
             # Trafilatura로 메타데이터 포함 추출 (JSON 형식으로 반환)
@@ -62,12 +62,12 @@ class handler(BaseHTTPRequestHandler):
             }
 
             self.send_response(200)
-            self.send_header('Content-type', 'application/json')
+            self.send_header('Content-type', 'application/json; charset=utf-8')
             self.end_headers()
-            self.wfile.write(json.dumps(data).encode('utf-8'))
+            self.wfile.write(json.dumps(data, ensure_ascii=False).encode('utf-8'))
 
         except Exception as e:
             self.send_response(500)
-            self.send_header('Content-type', 'application/json')
+            self.send_header('Content-type', 'application/json; charset=utf-8')
             self.end_headers()
-            self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+            self.wfile.write(json.dumps({"error": str(e)}, ensure_ascii=False).encode('utf-8'))
