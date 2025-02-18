@@ -1,10 +1,6 @@
 {
-  "version": 2,
-  "redirects": [{ "source": "/", "destination": "/api" }],
-  "builds": [
-    {
-      "src": "Dockerfile",
-      "use": "docker"
-    }
-  ]
+  "env": {
+    "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD": "1"
+  },
+  "redirects": [{ "source": "/", "destination": "/api" }]
 }
