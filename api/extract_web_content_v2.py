@@ -2,7 +2,7 @@ from urllib.parse import urlparse, parse_qs
 import json
 import requests
 import trafilatura
-from lxml import html
+from requests_html import HTMLSession
 from http.server import BaseHTTPRequestHandler
 
 def fetch_dynamic_content(url):
@@ -38,7 +38,6 @@ class handler(BaseHTTPRequestHandler):
 
         try:
             dynamic_content = fetch_dynamic_content(extracted_url)
-
             if isinstance(dynamic_content, dict) and "error" in dynamic_content:
                 self.send_response(500)
                 self.send_header('Content-type', 'application/json; charset=utf-8')
@@ -46,9 +45,8 @@ class handler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps(dynamic_content, ensure_ascii=False).encode('utf-8'))
                 return
 
-            # Trafilatura로 메타데이터 포함 추출 (JSON 형식으로 반환)
+            # Trafilatura로 본문 및 메타데이터 추출 (JSON 형식)
             result_str = trafilatura.extract(dynamic_content, output_format='json', with_metadata=True)
-
             if result_str is None:
                 title = "No title"
                 content_text = "No content"
@@ -57,11 +55,13 @@ class handler(BaseHTTPRequestHandler):
                 title = result.get('title', "No title")
                 content_text = result.get('text', "No content")
 
-            # lxml과 XPath를 사용하여 댓글 추출
-            # 댓글 리스트: div.cmt_list, 댓글 아이템: div.cmt_item
-            tree = html.fromstring(dynamic_content)
-            comment_elements = tree.xpath('//div[@class="cmt_list"]//div[@class="cmt_item"]')
-            comments = [elem.text_content().strip() for elem in comment_elements]
+            # requests_html를 사용해 동적 페이지 렌더링 후 CSS 셀렉터로 댓글 추출
+            session = HTMLSession()
+            r = session.get(extracted_url)
+            r.html.render(timeout=20)
+            # "div.cmt_list" 내부의 "div.cmt_item" 요소들을 찾음
+            comment_elements = r.html.find("div.cmt_list div.cmt_item")
+            comments = [elem.text for elem in comment_elements]
 
             data = {
                 'link': extracted_url,
