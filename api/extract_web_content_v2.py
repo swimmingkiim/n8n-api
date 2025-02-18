@@ -2,15 +2,18 @@ from urllib.parse import urlparse, parse_qs
 import json
 import requests
 import trafilatura
+from bs4 import BeautifulSoup
 
 from http.server import BaseHTTPRequestHandler
 
 def fetch_dynamic_content(url):
     try:
         headers = {
-            "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                           "AppleWebKit/537.36 (KHTML, like Gecko) "
-                           "Chrome/91.0.4472.124 Safari/537.36")
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/91.0.4472.124 Safari/537.36"
+            )
         }
         response = requests.get(url, headers=headers, timeout=30)
         response.raise_for_status()
@@ -55,10 +58,20 @@ class handler(BaseHTTPRequestHandler):
                 title = result.get('title', "No title")
                 content_text = result.get('text', "No content")
 
+            # BeautifulSoup를 사용해 댓글 추출 (div.cmt_list 내부의 div.cmt_item)
+            soup = BeautifulSoup(dynamic_content, 'html.parser')
+            comment_container = soup.find('div', class_='cmt_list')
+            if comment_container:
+                comment_items = comment_container.find_all('div', class_='cmt_item')
+                comments = [item.get_text(strip=True) for item in comment_items]
+            else:
+                comments = []
+
             data = {
                 'link': extracted_url,
                 'title': title,
-                'content': content_text
+                'content': content_text,
+                'comments': comments
             }
 
             self.send_response(200)
