@@ -8,9 +8,9 @@ from http.server import BaseHTTPRequestHandler
 def fetch_dynamic_content(url):
     try:
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                          "AppleWebKit/537.36 (KHTML, like Gecko) "
-                          "Chrome/91.0.4472.124 Safari/537.36"
+            "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                           "AppleWebKit/537.36 (KHTML, like Gecko) "
+                           "Chrome/91.0.4472.124 Safari/537.36")
         }
         response = requests.get(url, headers=headers, timeout=30)
         response.raise_for_status()
@@ -44,13 +44,14 @@ class handler(BaseHTTPRequestHandler):
                 self.wfile.write(json.dumps(dynamic_content).encode('utf-8'))
                 return
 
-            # Trafilatura를 이용해 주요 콘텐츠 추출 (메타데이터 포함)
-            result = trafilatura.extract(dynamic_content, with_metadata=True)
+            # Trafilatura로 메타데이터 포함 추출 (JSON 형식으로 반환)
+            result_str = trafilatura.extract(dynamic_content, output_format='json', with_metadata=True)
 
-            if result is None:
+            if result_str is None:
                 title = "No title"
                 content_text = "No content"
             else:
+                result = json.loads(result_str)
                 title = result.get('title', "No title")
                 content_text = result.get('text', "No content")
 
