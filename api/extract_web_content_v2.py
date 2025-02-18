@@ -10,7 +10,6 @@ import json
 import requests
 import trafilatura
 from http.server import BaseHTTPRequestHandler
-from requests_html import HTMLSession
 
 def fetch_dynamic_content(url):
     try:
@@ -26,16 +25,6 @@ def fetch_dynamic_content(url):
         return response.text
     except Exception as e:
         return {"error": str(e)}
-
-def fetch_dynamic_comments_requests_html(url):
-    session = HTMLSession()
-    r = session.get(url)
-    # 페이지 내 동적 콘텐츠 렌더링 (댓글 등)
-    r.html.render(timeout=20)
-    # CSS 셀렉터를 이용해 댓글 추출 (div.cmt_list 내의 div.cmt_item)
-    comment_elements = r.html.find("div.cmt_list div.cmt_item")
-    comments = [elem.text for elem in comment_elements]
-    return comments
 
 class handler(BaseHTTPRequestHandler):
 
@@ -71,14 +60,10 @@ class handler(BaseHTTPRequestHandler):
                 title = result.get('title', "No title")
                 content_text = result.get('text', "No content")
 
-            # requests-html을 사용하여 동적 댓글 가져오기
-            comments = fetch_dynamic_comments_requests_html(extracted_url)
-
             data = {
                 'link': extracted_url,
                 'title': title,
-                'content': content_text,
-                'comments': comments
+                'content': content_text
             }
 
             self.send_response(200)
