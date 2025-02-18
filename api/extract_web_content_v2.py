@@ -4,6 +4,10 @@ import requests
 import trafilatura
 from requests_html import HTMLSession
 from http.server import BaseHTTPRequestHandler
+import nest_asyncio
+
+# nest_asyncio를 적용하여 현재 스레드에서도 이벤트 루프를 사용할 수 있게 함
+nest_asyncio.apply()
 
 def fetch_dynamic_content(url):
     try:
